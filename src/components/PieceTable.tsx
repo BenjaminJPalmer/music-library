@@ -1,0 +1,50 @@
+interface Piece {
+  id: string
+  title: string
+  composer: string | null
+  publisher: string | null
+  instruments: string[] | null
+}
+
+interface Props {
+  pieces: Piece[]
+}
+
+export function PieceTable({ pieces }: Props) {
+  if (!pieces.length) {
+    return (
+      <p className="text-gray-400 text-sm py-12 text-center">
+        No pieces found. Try adjusting your filters.
+      </p>
+    )
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm text-left">
+        <thead>
+          <tr className="border-b border-gray-200 text-gray-500 text-xs uppercase tracking-wide">
+            <th className="pb-3 pr-6 font-medium">Title</th>
+            <th className="pb-3 pr-6 font-medium">Composer</th>
+            <th className="pb-3 pr-6 font-medium">Instrumentation</th>
+            <th className="pb-3 font-medium">Publisher</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100">
+          {pieces.map((piece) => (
+            <tr key={piece.id} className="hover:bg-gray-50 transition-colors">
+              <td className="py-3 pr-6 font-medium text-gray-900">{piece.title}</td>
+              <td className="py-3 pr-6 text-gray-600">{piece.composer ?? '—'}</td>
+              <td className="py-3 pr-6 text-gray-600">
+                {piece.instruments?.length
+                  ? piece.instruments.join(', ')
+                  : '—'}
+              </td>
+              <td className="py-3 text-gray-600">{piece.publisher ?? '—'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
