@@ -27,7 +27,6 @@ export function FilterSortBar({ composers, publishers, instruments, current }: P
     } else {
       next.delete(key)
     }
-    // Reset to page 1 on filter change (future-proofing)
     next.delete('page')
     startTransition(() => {
       router.push(`/?${next.toString()}`)
@@ -42,44 +41,41 @@ export function FilterSortBar({ composers, publishers, instruments, current }: P
 
   const hasFilters = current.composer || current.publisher || current.instrument
 
+  const selectClass =
+    'rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-600'
+
   return (
     <div className={`flex flex-wrap gap-3 items-center mb-6 transition-opacity ${isPending ? 'opacity-50' : ''}`}>
       <select
         value={current.composer ?? ''}
         onChange={(e) => update('composer', e.target.value)}
-        className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+        className={selectClass}
       >
         <option value="">All composers</option>
         {composers.map((c) => (
-          <option key={c} value={c}>
-            {c}
-          </option>
+          <option key={c} value={c}>{c}</option>
         ))}
       </select>
 
       <select
         value={current.publisher ?? ''}
         onChange={(e) => update('publisher', e.target.value)}
-        className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+        className={selectClass}
       >
         <option value="">All publishers</option>
         {publishers.map((p) => (
-          <option key={p} value={p}>
-            {p}
-          </option>
+          <option key={p} value={p}>{p}</option>
         ))}
       </select>
 
       <select
         value={current.instrument ?? ''}
         onChange={(e) => update('instrument', e.target.value)}
-        className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+        className={selectClass}
       >
         <option value="">All instruments</option>
         {instruments.map((i) => (
-          <option key={i} value={i}>
-            {i}
-          </option>
+          <option key={i} value={i}>{i}</option>
         ))}
       </select>
 
@@ -87,7 +83,7 @@ export function FilterSortBar({ composers, publishers, instruments, current }: P
         {hasFilters && (
           <button
             onClick={clearAll}
-            className="text-sm text-gray-500 hover:text-gray-700 underline underline-offset-2"
+            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 underline underline-offset-2"
           >
             Clear filters
           </button>
@@ -95,7 +91,7 @@ export function FilterSortBar({ composers, publishers, instruments, current }: P
         <select
           value={current.sort ?? 'title'}
           onChange={(e) => update('sort', e.target.value)}
-          className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+          className={selectClass}
         >
           <option value="title">Sort: Title</option>
           <option value="composer">Sort: Composer</option>
