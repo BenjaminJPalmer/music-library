@@ -1,7 +1,10 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
+import { toTitleCase } from '@/lib/format'
+import { MultiSelect } from '@/components/MultiSelect'
+import { SelectFilter } from '@/components/SelectFilter'
 
 interface Props {
   composers: string[]
@@ -10,8 +13,8 @@ interface Props {
   current: {
     composer?: string
     publisher?: string
-    instrument?: string
-    sort?: string
+    instruments: string[]
+    q?: string
   }
 }
 
@@ -19,6 +22,31 @@ export function FilterSortBar({ composers, publishers, instruments, current }: P
   const router = useRouter()
   const params = useSearchParams()
   const [isPending, startTransition] = useTransition()
+  const urlQ = current.q ?? ''
+  const [q, setQ] = useState(urlQ)
+  const [prevUrlQ, setPrevUrlQ] = useState(urlQ)
+
+  // Sync the input when the URL changes externally (e.g. "Clear filters").
+  // Adjusting state during render is the recommended alternative to an effect.
+  if (urlQ !== prevUrlQ) {
+    setPrevUrlQ(urlQ)
+    setQ(urlQ)
+  }
+
+  // Debounce search input -> URL so we don't navigate on every keystroke.
+  useEffect(() => {
+    if (q.trim() === urlQ) return
+    const timer = setTimeout(() => update('q', q.trim()), 300)
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q, urlQ])
+
+  function pushParams(next: URLSearchParams) {
+    startTransition(() => {
+      const qs = next.toString()
+      router.push(qs ? `/?${qs}` : '/')
+    })
+  }
 
   function update(key: string, value: string) {
     const next = new URLSearchParams(params.toString())
@@ -27,10 +55,14 @@ export function FilterSortBar({ composers, publishers, instruments, current }: P
     } else {
       next.delete(key)
     }
-    next.delete('page')
-    startTransition(() => {
-      router.push(`/?${next.toString()}`)
-    })
+    pushParams(next)
+  }
+
+  function updateInstruments(values: string[]) {
+    const next = new URLSearchParams(params.toString())
+    next.delete('instrument')
+    values.forEach((v) => next.append('instrument', v))
+    pushParams(next)
   }
 
   function clearAll() {
@@ -39,64 +71,56 @@ export function FilterSortBar({ composers, publishers, instruments, current }: P
     })
   }
 
-  const hasFilters = current.composer || current.publisher || current.instrument
-
-  const selectClass =
-    'rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-600'
+  const hasFilters =
+    current.composer || current.publisher || current.instruments.length || current.q
 
   return (
     <div className={`flex flex-wrap gap-3 items-center mb-6 transition-opacity ${isPending ? 'opacity-50' : ''}`}>
-      <select
+      <input
+        type="search"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder="Search title or composer…"
+        aria-label="Search by title or composer"
+        className="rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-600 w-full sm:w-64"
+      />
+
+      <SelectFilter
+        ariaLabel="Filter by composer"
         value={current.composer ?? ''}
-        onChange={(e) => update('composer', e.target.value)}
-        className={selectClass}
-      >
-        <option value="">All composers</option>
-        {composers.map((c) => (
-          <option key={c} value={c}>{c}</option>
-        ))}
-      </select>
+        onChange={(v) => update('composer', v)}
+        options={[
+          { value: '', label: 'All composers' },
+          ...composers.map((c) => ({ value: c, label: toTitleCase(c) })),
+        ]}
+      />
 
-      <select
+      <SelectFilter
+        ariaLabel="Filter by publisher"
         value={current.publisher ?? ''}
-        onChange={(e) => update('publisher', e.target.value)}
-        className={selectClass}
-      >
-        <option value="">All publishers</option>
-        {publishers.map((p) => (
-          <option key={p} value={p}>{p}</option>
-        ))}
-      </select>
+        onChange={(v) => update('publisher', v)}
+        options={[
+          { value: '', label: 'All publishers' },
+          ...publishers.map((p) => ({ value: p, label: toTitleCase(p) })),
+        ]}
+      />
 
-      <select
-        value={current.instrument ?? ''}
-        onChange={(e) => update('instrument', e.target.value)}
-        className={selectClass}
-      >
-        <option value="">All instruments</option>
-        {instruments.map((i) => (
-          <option key={i} value={i}>{i}</option>
-        ))}
-      </select>
+      <MultiSelect
+        ariaLabel="Filter by instrument"
+        noun="instruments"
+        options={instruments}
+        selected={current.instruments}
+        onChange={updateInstruments}
+      />
 
-      <div className="ml-auto flex items-center gap-3">
-        {hasFilters && (
-          <button
-            onClick={clearAll}
-            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 underline underline-offset-2"
-          >
-            Clear filters
-          </button>
-        )}
-        <select
-          value={current.sort ?? 'title'}
-          onChange={(e) => update('sort', e.target.value)}
-          className={selectClass}
+      {hasFilters && (
+        <button
+          onClick={clearAll}
+          className="ml-auto text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 underline underline-offset-2"
         >
-          <option value="title">Sort: Title</option>
-          <option value="composer">Sort: Composer</option>
-        </select>
-      </div>
+          Clear filters
+        </button>
+      )}
     </div>
   )
 }

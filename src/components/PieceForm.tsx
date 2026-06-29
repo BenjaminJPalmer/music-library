@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState, useTransition } from 'react'
+import Link from 'next/link'
 import { createPiece, updatePiece } from '@/actions/pieces'
 
 interface Piece {
@@ -66,13 +67,13 @@ export function PieceForm({ piece, composers, publishers, instruments }: Props) 
   }
 
   const inputClass =
-    'w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400 placeholder:text-gray-400'
-  const labelClass = 'block text-sm font-medium text-gray-700 mb-1'
+    'w-full rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500'
+  const labelClass = 'block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-5 max-w-lg">
       {error && (
-        <div className="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-md bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-900 px-4 py-3 text-sm text-red-700 dark:text-red-300">
           {error}
         </div>
       )}
@@ -170,7 +171,7 @@ export function PieceForm({ piece, composers, publishers, instruments }: Props) 
           <button
             type="button"
             onClick={addInstrumentRow}
-            className="text-sm text-gray-500 hover:text-gray-800 underline underline-offset-2"
+            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 underline underline-offset-2"
           >
             + Add instrument
           </button>
@@ -182,16 +183,16 @@ export function PieceForm({ piece, composers, publishers, instruments }: Props) 
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-md bg-gray-900 px-5 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50 transition-colors"
+          className="rounded-md bg-gray-900 dark:bg-gray-100 px-5 py-2 text-sm font-medium text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-300 disabled:opacity-50 transition-colors"
         >
           {isPending ? 'Saving…' : isEdit ? 'Save changes' : 'Add piece'}
         </button>
-        <a
+        <Link
           href="/admin"
-          className="rounded-md border border-gray-200 px-5 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+          className="rounded-md border border-gray-200 dark:border-gray-700 px-5 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
         >
           Cancel
-        </a>
+        </Link>
       </div>
     </form>
   )

@@ -1,1 +1,24 @@
 @import "tailwindcss";
+
+/*
+ * Drive the `dark:` variant from a `.dark` class on <html> instead of the
+ * default `prefers-color-scheme` media query, so the theme toggle can
+ * override the OS setting. The inline script in the root layout adds/removes
+ * this class before paint to avoid a flash of the wrong theme.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Tailwind v4's preflight no longer sets `cursor: pointer` on buttons, so
+ * give all interactive controls a pointer cursor (disabled ones excepted).
+ * Text inputs keep their default text cursor.
+ */
+@layer base {
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  select,
+  summary,
+  label[for] {
+    cursor: pointer;
+  }
+}
