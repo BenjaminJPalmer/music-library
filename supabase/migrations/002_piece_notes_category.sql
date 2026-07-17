@@ -5,16 +5,18 @@
 alter table pieces add column if not exists notes    text;
 alter table pieces add column if not exists category text;
 
--- Recreate the list view to include the new fields.
+-- Recreate the list view to include the new fields. New columns are appended
+-- AFTER the existing ones — `create or replace view` cannot reorder or rename
+-- existing view columns, only add to the end.
 create or replace view piece_details as
 select
   p.id,
   p.title,
   c.name   as composer,
   pub.name as publisher,
+  array_remove(array_agg(i.name order by i.name), null) as instruments,
   p.notes,
-  p.category,
-  array_remove(array_agg(i.name order by i.name), null) as instruments
+  p.category
 from pieces p
 left join composers c     on c.id = p.composer_id
 left join publishers pub  on pub.id = p.publisher_id
