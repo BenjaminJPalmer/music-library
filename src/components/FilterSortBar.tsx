@@ -10,15 +10,17 @@ interface Props {
   composers: string[]
   publishers: string[]
   instruments: string[]
+  categories: string[]
   current: {
     composer?: string
     publisher?: string
+    category?: string
     instruments: string[]
     q?: string
   }
 }
 
-export function FilterSortBar({ composers, publishers, instruments, current }: Props) {
+export function FilterSortBar({ composers, publishers, instruments, categories, current }: Props) {
   const router = useRouter()
   const params = useSearchParams()
   const [isPending, startTransition] = useTransition()
@@ -72,7 +74,11 @@ export function FilterSortBar({ composers, publishers, instruments, current }: P
   }
 
   const hasFilters =
-    current.composer || current.publisher || current.instruments.length || current.q
+    current.composer ||
+    current.publisher ||
+    current.category ||
+    current.instruments.length ||
+    current.q
 
   return (
     <div className={`flex flex-wrap gap-3 items-center mb-6 transition-opacity ${isPending ? 'opacity-50' : ''}`}>
@@ -84,6 +90,18 @@ export function FilterSortBar({ composers, publishers, instruments, current }: P
         aria-label="Search by title or composer"
         className="rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-600 w-full sm:w-64"
       />
+
+      {categories.length > 0 && (
+        <SelectFilter
+          ariaLabel="Filter by category"
+          value={current.category ?? ''}
+          onChange={(v) => update('category', v)}
+          options={[
+            { value: '', label: 'All categories' },
+            ...categories.map((c) => ({ value: c, label: c })),
+          ]}
+        />
+      )}
 
       <SelectFilter
         ariaLabel="Filter by composer"

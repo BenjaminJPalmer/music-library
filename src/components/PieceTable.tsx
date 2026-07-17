@@ -7,6 +7,7 @@ interface Piece {
   composer: string | null
   publisher: string | null
   instruments: string[] | null
+  notes?: string | null
 }
 
 interface Props {
@@ -42,9 +43,10 @@ export function PieceTable({ pieces, emptyMessage, renderActions, sortable }: Pr
               {sortable ? <SortableHeader column="composer" label="Composer" /> : 'Composer'}
             </th>
             <th className="pb-3 pr-6 font-medium">Instrumentation</th>
-            <th className={`pb-3 font-medium${hasActions ? ' pr-6' : ''}`}>
+            <th className="pb-3 pr-6 font-medium">
               {sortable ? <SortableHeader column="publisher" label="Publisher" /> : 'Publisher'}
             </th>
+            <th className={`pb-3 font-medium${hasActions ? ' pr-6' : ''}`}>Notes</th>
             {hasActions && <th className="pb-3 font-medium" />}
           </tr>
         </thead>
@@ -59,8 +61,11 @@ export function PieceTable({ pieces, emptyMessage, renderActions, sortable }: Pr
               <td className="py-3 pr-6 text-gray-600 dark:text-gray-400 capitalize">
                 {piece.instruments?.length ? piece.instruments.join(', ') : '—'}
               </td>
-              <td className={`py-3 text-gray-600 dark:text-gray-400 capitalize${hasActions ? ' pr-6' : ''}`}>
+              <td className="py-3 pr-6 text-gray-600 dark:text-gray-400 capitalize">
                 {piece.publisher ?? '—'}
+              </td>
+              <td className={`py-3 text-gray-500 dark:text-gray-500${hasActions ? ' pr-6' : ''}`}>
+                {piece.notes || '—'}
               </td>
               {hasActions && (
                 <td className="py-3 text-right">

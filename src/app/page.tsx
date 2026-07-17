@@ -8,6 +8,7 @@ interface SearchParams {
   composer?: string
   publisher?: string
   instrument?: string | string[]
+  category?: string
   sort?: string
   dir?: string
   q?: string
@@ -19,7 +20,7 @@ export default async function HomePage({
   searchParams: Promise<SearchParams>
 }) {
   const params = await searchParams
-  const { composer, publisher, sort, dir, q } = params
+  const { composer, publisher, category, sort, dir, q } = params
 
   // `instrument` may appear multiple times in the URL — normalise to an array.
   const selectedInstruments = Array.isArray(params.instrument)
@@ -31,12 +32,18 @@ export default async function HomePage({
   const supabase = await createClient()
 
   // Fetch filter options and pieces in parallel
-  const [piecesResult, composersResult, publishersResult, instrumentsResult] =
-    await Promise.all([
+  const [
+    piecesResult,
+    composersResult,
+    publishersResult,
+    instrumentsResult,
+    categoriesResult,
+  ] = await Promise.all([
       (() => {
         let query = supabase.from('piece_details').select('*')
         if (composer) query = query.eq('composer', composer)
         if (publisher) query = query.eq('publisher', publisher)
+        if (category) query = query.eq('category', category)
         // Match pieces scored for ALL of the selected instruments.
         if (selectedInstruments.length) {
           query = query.contains('instruments', selectedInstruments)
@@ -56,15 +63,21 @@ export default async function HomePage({
       supabase.from('composers').select('name').order('name'),
       supabase.from('publishers').select('name').order('name'),
       supabase.from('instruments').select('name').order('name'),
+      // Categories live on the pieces themselves (no reference table); derive
+      // the distinct list. Resilient if the column doesn't exist yet.
+      supabase.from('pieces').select('category'),
     ])
 
   const pieces = piecesResult.data ?? []
   const composers = (composersResult.data ?? []).map((r) => r.name)
   const publishers = (publishersResult.data ?? []).map((r) => r.name)
   const instruments = (instrumentsResult.data ?? []).map((r) => r.name)
+  const categories = Array.from(
+    new Set((categoriesResult.data ?? []).map((r) => r.category).filter(Boolean))
+  ).sort() as string[]
 
   const hasFilters =
-    !!composer || !!publisher || selectedInstruments.length > 0 || !!q
+    !!composer || !!publisher || !!category || selectedInstruments.length > 0 || !!q
 
   return (
     <>
@@ -73,7 +86,8 @@ export default async function HomePage({
           composers={composers}
           publishers={publishers}
           instruments={instruments}
-          current={{ composer, publisher, instruments: selectedInstruments, q }}
+          categories={categories}
+          current={{ composer, publisher, category, instruments: selectedInstruments, q }}
         />
       </Suspense>
 
